@@ -2,10 +2,9 @@
 关于kubernetes的操作步骤，有三种：命令行、命令对象配置和声明对象配置。具体说明参照[官方说明](https://kubernetes.io/docs/concepts/overview/object-management-kubectl/overview/#imperative-object-configuration)。命令行的方式由于难以追踪，已经被强烈不建议在生产环境中使用。为方便起见，本文统一采用命令对象配置（imperative object configuration）
 
 ## 本地构建镜像
-1. 在源码项目中增加Dockerfile
-示例：
-Dockerfile:
-
+1. 在源码项目中增加Dockerfile  
+示例：  
+Dockerfile:  
 ```
 FROM registry-internal.cn-beijing.aliyuncs.com/rsq-public/tomcat:8.0.50-jre8
 
@@ -56,16 +55,14 @@ sudo docker build -f ./Dockerfile -t registry-internal.cn-beijing.aliyuncs.com/r
 
 2. 在指定命名空间下新建仓库，仓库名称需要与项目名称一致。代码源可以选择本地仓库。
 
-3. 本地使用docker登录镜像仓库。
-例如：username使用实际的用户名，并输入密码
-
+3. 本地使用docker登录镜像仓库。  
+例如：username使用实际的用户名，并输入密码  
 ```
 sudo docker login --username=u-wallace@rishiqing registry.cn-beijing.aliyuncs.com
 ```
 
-4. 本地将构建好的镜像推送到镜像仓库。
+4. 本地将构建好的镜像推送到镜像仓库。  
 例如：
-
 ```
 sudo docker push registry.cn-beijing.aliyuncs.com/rsq-project/qywx-isv-access-main:[镜像版本号]
 ```
@@ -89,10 +86,8 @@ kubectl get namespaces
 kubectl create namespace [name space name]
 ```
 
-3. 创建配置的ConfigMap
-
-新建ConfigMap的说明文件，示例如下：
-
+3. 创建配置的ConfigMap  
+新建ConfigMap的说明文件，示例如下：  
 config.yaml：
 ```
 apiVersion: v1
@@ -119,15 +114,13 @@ kubectl -n [namespace name] create -f config.yaml
 **注意：一定要加“-n”参数来指定命名空间，否则新建的ConfigMap将会默认在default的命名空间中！**
 
 检查命名空间中是否有ConfigMap
-
 ```
 kubectl -n [namespace name] get configmaps
 ```
 
-4. 通过docker镜像创建各Deployment
-根据之前拆分的服务，有几个需要启动的docker镜像，就需要新建几个Deployment。Deployment会自动维护Pod。典型的Deployment的说明文件如下：
-
-qywx-isv-access-main-deploy.yaml文件：
+4. 通过docker镜像创建各Deployment  
+根据之前拆分的服务，有几个需要启动的docker镜像，就需要新建几个Deployment。Deployment会自动维护Pod。典型的Deployment的说明文件如下：  
+qywx-isv-access-main-deploy.yaml文件：  
 ```
 apiVersion: apps/v1
 kind: Deployment
@@ -204,7 +197,7 @@ kubectl -n [namespace name] create -f qywx-isv-access-main-deploy.yaml
 kubectl -n [namespace name] get deployments
 ```
 
-5. 需要对外暴露的服务，创建Service。
+5. 需要对外暴露的服务，创建Service。  
 需要对外暴露的服务，通过Service暴露端口，Service的声明文件示例如下：
 
 service-qywx-isv-access-main.yaml
@@ -235,16 +228,16 @@ spec:
 ## 开放对外端口
 由于目前的kubernetes Service使用的是NodePort的方式，因此通过阿里云负载均衡（SLB）将外网请求转发到Service的服务端口（nodePort），实现外网访问。
 
-1. 新增阿里云负载均衡（SLB）实例
+1. 新增阿里云负载均衡（SLB）实例  
 
-2. 新增虚拟服务器组
+2. 新增虚拟服务器组  
 每个需要对外访问的服务构成一个服务器组。将kubernetes的slave节点选中作为服务器组的服务器，端口设置为kubernetes中Service声明文件中配置的spec.ports.nodePort的端口号
 
-3. 在实例上添加监听
+3. 在实例上添加监听  
 注意：
 - 前端协议选择http或者https。后端协议选择http。建议https的证书验证放到负载均衡的监听中处理。
 
-4. 添加转发策略
+4. 添加转发策略  
 在监听上添加转发策略，可以根据域名和URL将请求转发到不同的虚拟服务器组中
 
-5. 测试是否可以实现外网访问
+5. 测试是否可以实现外网访问  
